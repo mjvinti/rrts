@@ -11,7 +11,15 @@ export interface Todo {
 
 export interface FetchTodosAction {
     type: ActionTypes.fetchTodos;
+}
+
+export interface FetchTodosSuccessAction {
+    type: ActionTypes.fetchTodosSuccess;
     payload: Todo[];
+}
+
+export interface FetchTodosErrorAction {
+    type: ActionTypes.fetchTodosError;
 }
 
 export interface DeleteTodoAction {
@@ -23,12 +31,17 @@ const url = 'https://jsonplaceholder.typicode.com/todos';
 
 export const fetchTodos = () => {
     return async (dispatch: Dispatch) => {
-        const response = await axios.get<Todo[]>(url);
-
-        dispatch<FetchTodosAction>({
-            type: ActionTypes.fetchTodos,
-            payload: response.data
-        });
+        dispatch<FetchTodosAction>({ type: ActionTypes.fetchTodos });
+        try {
+            const response = await axios.get<Todo[]>(url);
+            dispatch<FetchTodosSuccessAction>({
+                type: ActionTypes.fetchTodosSuccess,
+                payload: response.data
+            });
+        } catch (err) {
+            dispatch<FetchTodosErrorAction>({ type: ActionTypes.fetchTodosError });
+        }
+        
     };
 };
 

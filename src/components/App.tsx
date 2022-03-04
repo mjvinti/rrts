@@ -1,63 +1,41 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 
-import { deleteTodo, fetchTodos, Todo } from '../actions';
+import { deleteTodo, DeleteTodoAction, fetchTodos, Todo } from '../actions';
 import { StoreState } from '../reducers';
 
 interface AppProps {
-    todos: Todo[];
-    fetchTodos: Function;
     deleteTodo: typeof deleteTodo;
+    fetching: boolean;
+    fetchTodos: Function;
+    todos: Todo[];
 }
 
 interface AppState {
     fetching: boolean;
+    todos: Todo[];
 }
 
-class _App extends Component<AppProps, AppState> {
-    constructor(props: AppProps) {
-        super(props);
-        this.state = { fetching: false };
-    }
+function _App({ deleteTodo, fetching, fetchTodos, todos }: AppProps) {
+    const onButtonClick = (): void => fetchTodos();
+    const onTodoClick = (id: number): DeleteTodoAction => deleteTodo(id);
+    const renderList = (): JSX.Element[] => todos.map((todo: Todo) => (
+        <div onClick={() => onTodoClick(todo.id)} key={todo.id}>
+            {todo.title}
+        </div>
+    ));
 
-    componentDidUpdate(prevProps: AppProps): void {
-        if (!prevProps.todos.length && this.props.todos.length) {
-            this.setState({ fetching: false });
-        }
-    }
-
-    onButtonClick = (): void => {
-        this.props.fetchTodos();
-        this.setState({ fetching: true });
-    }
-
-    onTodoClick = (id: number): void => {
-        this.props.deleteTodo(id);
-    }
-
-    renderList(): JSX.Element[] {
-        return this.props.todos.map((todo: Todo) => {
-            return (
-                <div onClick={() => this.onTodoClick(todo.id)} key={todo.id}>
-                    {todo.title}
-                </div>
-            );
-        })
-    }
-
-    render() {
-        return (
-            <div>
-                <button onClick={this.onButtonClick}>Fetch</button>
-                {this.state.fetching ? 'LOADING' : null}
-                {this.renderList()}
-            </div>
-        );
-    }
+    return (
+        <div>
+            <button onClick={onButtonClick}>Fetch</button>
+                {fetching ? 'LOADING' : null}
+                {renderList()}
+        </div>
+    );
 }
 
-const mapStateToProps = ({ todos }: StoreState): { todos: Todo[] } => {
-    return { todos };
+const mapStateToProps = ({ todos }: StoreState): AppState => {
+    return { todos: todos.todos, fetching: todos.fetching };
 };
 
 export const App = connect(
